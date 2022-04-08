@@ -1,0 +1,23 @@
+﻿<div class="border bg-light">
+    <h3>Stats</h3>
+    <dl class="row">
+        <dt class="col-6">
+            Devices Online:
+        </dt>
+        <dd class="col-6">
+            @info.OnlineCount
+        </dd>
+        <dt dt class="col-6">
+            Devices Offline:
+        </dt>
+        <dd class="col-6">
+            @info.OfflineCount
+        </dd>
+    </dl>
+</div>
+
+@code {
+    [Parameter]
+    public Info info { get; set; } = new Info();
+
+}

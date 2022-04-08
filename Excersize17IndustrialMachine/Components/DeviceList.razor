@@ -1,0 +1,139 @@
+﻿@using static Excersize17IndustrialMachine.Pages.Index
+
+<div class="border bg-light">
+    <h3>Device List</h3>
+
+    @* <button @onclick="@(() => MessageFromChild.InvokeAsync("Hello from DeviceList.razor!"))">Klicka på mig, tack</button>*@
+
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">
+                    Name
+                </th>
+                <th scope="col">
+                    Device ID
+                </th>
+                <th scope="col">
+                    Status
+                </th>
+                <th scope="col">
+                    Latest recieved data
+                </th>
+                <th scope="col">
+                    some other stuff
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var device in Devices)
+            {
+                <tr>
+                    <td>
+                        <div>
+                            @device.Name
+                        </div>
+                    </td>
+                    <td>
+                        <div class="alert alert-info">
+                            @device.Id
+                        </div>
+                    </td>
+                    <td>
+                        @if (device.Status)
+                        {
+                            <div class="alert alert-success" role="alert" @onclick="() => OnToggleStatus(device)">Online</div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger" role="alert" @onclick="() => OnToggleStatus(device)">Offline</div>
+                        }
+                    </td>
+                    <td>
+                        <div>
+                            @System.Text.Encoding.ASCII.GetString(device.Data)
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <input type="text" @bind="device.SendData" />
+                            @if (device.Status)
+                            {
+                                <button class="btn btn-warning" @onclick="() => SendData(device)">
+                                    <span class="oi oi-phone"></span> 
+                                    Send Data
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-warning disabled" @onclick="() => SendData(device)">
+                                    <span class="oi oi-pulse"></span> 
+                                    Send Data
+                                </button>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@code {
+    [Parameter]
+    public Device[]? Devices { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> ToggleStatus { get; set; }
+
+    [Parameter]
+    public EventCallback<Info> Status { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //devices = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json"); // Todo: get from my database
+        Devices = new Device[]{new Device()
+        {
+            Name = "Thing 1",
+            Id = new Guid(System.Text.Encoding.ASCII.GetBytes("abcdefghijklmnop")),
+            Status = true,
+            Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 1")
+        },
+        new Device()
+        {
+            Name = "Thing 2",
+            Id = new Guid(System.Text.Encoding.ASCII.GetBytes("thing2issuccessy")),
+            Status = true,
+            Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 2")
+        },
+        new Device()
+        {
+            Name = "Thing 3",
+            Id = new Guid(System.Text.Encoding.ASCII.GetBytes("cccccccccccccccc")),
+            Status = false,
+            Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 3")
+        } };
+
+        await OnStatus();
+    }
+
+    void SendData(Device device)
+    {
+        // Do stuff or smth
+        Console.WriteLine(device.SendData);
+    }
+
+    async Task OnToggleStatus(Device device)
+    {
+        device.Status = !device.Status;
+        await ToggleStatus.InvokeAsync(device.Status);
+        await OnStatus();
+    }
+
+    async Task OnStatus() => await Status.InvokeAsync(new Info()
+        {
+            OnlineCount = Devices != null ? Devices.Where(d => d.Status).ToList().Count : -1,
+            OfflineCount = Devices != null ? Devices.Where(d => !d.Status).ToList().Count : -1
+        });
+}

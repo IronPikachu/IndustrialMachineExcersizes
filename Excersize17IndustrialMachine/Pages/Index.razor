@@ -1,0 +1,25 @@
+﻿@page "/"
+
+
+<PageTitle>Index</PageTitle>
+
+<h1>Dashboard</h1>
+
+<div class="row">
+    <div class="col-3">
+        <Stats info="@stats"/>
+    </div>
+    <div class="col-9">
+        <DeviceList Status="UpdateStats"/>
+    </div>
+</div>
+
+@code {
+    void UpdateStats(Info newInfo)
+    {
+        stats = newInfo;
+    }
+
+    public Info stats = new Info();
+
+}

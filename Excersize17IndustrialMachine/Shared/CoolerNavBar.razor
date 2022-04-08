@@ -1,0 +1,49 @@
+﻿<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a id="logo" class="navbar-brand" href="" style="color: @Color">
+            <!--img class="d-inline-block align-text-bottom" src="pictures/genericlogo.png" height="32" /-->
+            <span class="oi oi-aperture"></span>
+            Aperture
+        </a>
+        <span class="navbar-brand mb-0 h1 me-auto" style="color: gray;">
+            @SubTitle
+        </span>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navigator">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse pe-3" id="navigator">
+            <div class="navbar-nav">
+                <NavLink class="nav-link" href="" @onclick="() => SetSubTitle(Dashboard)" Match="NavLinkMatch.All">
+                    <span class="oi oi-home"></span>
+                    Dashboard
+                </NavLink>
+                <NavLink class="nav-link" href="add" @onclick="() => SetSubTitle(AddDevice)">
+                    <span class="oi oi-plus"></span>
+                    Add Device
+                </NavLink>
+            </div>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private string Dashboard = "Dashboard";
+    private string AddDevice = "Add Device";
+
+    private string SubTitle = "Dashboard";
+
+    private string Color
+    {
+        get
+        {
+            return rand.Next(2) == 0 ? "#ff9a00" : "#00a2ff";
+        }
+    }
+
+    void SetSubTitle(string title)
+    {
+        SubTitle = title;
+    }
+
+    Random rand = new Random();
+}
