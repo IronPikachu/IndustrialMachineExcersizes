@@ -8,4 +8,9 @@ public class Device
     public byte[] Data { get; set; }
     public string? SendData { get; set; }
 
+    public Device()
+    {
+        Id = Guid.NewGuid();
+    }
+
 }

@@ -21,7 +21,7 @@
                     Latest recieved data
                 </th>
                 <th scope="col">
-                    some other stuff
+                    Send data
                 </th>
             </tr>
         </thead>
@@ -60,14 +60,14 @@
                             @if (device.Status)
                             {
                                 <button class="btn btn-warning" @onclick="() => SendData(device)">
-                                    <span class="oi oi-phone"></span> 
+                                    <span class="oi oi-phone"></span>
                                     Send Data
                                 </button>
                             }
                             else
                             {
                                 <button class="btn btn-warning disabled" @onclick="() => SendData(device)">
-                                    <span class="oi oi-pulse"></span> 
+                                    <span class="oi oi-pulse"></span>
                                     Send Data
                                 </button>
                             }
@@ -82,53 +82,72 @@
 
 @code {
     [Parameter]
-    public Device[]? Devices { get; set; }
-
-    [Parameter]
-    public EventCallback<bool> ToggleStatus { get; set; }
+    public List<Device> Devices { get; set; } = new List<Device>();
 
     [Parameter]
     public EventCallback<Info> Status { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        //devices = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json"); // Todo: get from my database
-        Devices = new Device[]{new Device()
+        //Devices = new List<Device>(){
+        //    new Device()
+        //    {
+        //        Name = "Thing 1",
+        //        Id = new Guid(System.Text.Encoding.ASCII.GetBytes("abcdefghijklmnop")),
+        //        Status = true,
+        //        Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 1")
+        //    },
+        //    new Device()
+        //    {
+        //        Name = "Thing 2",
+        //        Id = new Guid(System.Text.Encoding.ASCII.GetBytes("thing2issuccessy")),
+        //        Status = true,
+        //        Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 2")
+        //    },
+        //    new Device()
+        //    {
+        //        Name = "Thing 3",
+        //        Id = new Guid(System.Text.Encoding.ASCII.GetBytes("cccccccccccccccc")),
+        //        Status = false,
+        //        Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 3")
+        //    }
+        //};
+
+        var response = await httpClient.GetFromJsonAsync<List<Device>>($"api/get");
+
+        if (response != null)
         {
-            Name = "Thing 1",
-            Id = new Guid(System.Text.Encoding.ASCII.GetBytes("abcdefghijklmnop")),
-            Status = true,
-            Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 1")
-        },
-        new Device()
-        {
-            Name = "Thing 2",
-            Id = new Guid(System.Text.Encoding.ASCII.GetBytes("thing2issuccessy")),
-            Status = true,
-            Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 2")
-        },
-        new Device()
-        {
-            Name = "Thing 3",
-            Id = new Guid(System.Text.Encoding.ASCII.GetBytes("cccccccccccccccc")),
-            Status = false,
-            Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 3")
-        } };
+            Devices = response;
+        }
 
         await OnStatus();
     }
 
-    void SendData(Device device)
+    async Task SendData(Device device)
     {
-        // Do stuff or smth
-        Console.WriteLine(device.SendData);
+        var response = await httpClient.PutAsJsonAsync<Device>($"api/putdata/{device.Id}", device);
+
+        if (response != null)
+        {
+            device.Data = System.Text.Encoding.ASCII.GetBytes(device.SendData!);
+            device.SendData = null;
+        }
     }
 
     async Task OnToggleStatus(Device device)
     {
         device.Status = !device.Status;
-        await ToggleStatus.InvokeAsync(device.Status);
-        await OnStatus();
+
+        var response = await httpClient.PutAsJsonAsync<Device>($"api/putstat/{device.Id}", device);
+
+        if (response != null)
+        {
+            await OnStatus();
+        }
+        else
+        {
+            device.Status = !device.Status;
+        }
     }
 
     async Task OnStatus() => await Status.InvokeAsync(new Info()

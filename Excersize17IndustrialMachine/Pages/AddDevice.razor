@@ -1,7 +1,47 @@
-﻿@page "/add"
+﻿@using IndustrialMachine.Data.Dto
+
+@page "/add"
 
 <h3>Add Device</h3>
 
+<div class="border bg-dark m-4 rounded">
+    <div class="m-3 row">
+        <label class="col-sm-2 col-form-label text-light">Name</label>
+        <div class="col-sm-10">
+            <input class="form-control" type="text" @bind="nameHolder" />
+        </div>
+    </div>
+    <div class="m-3 row">
+        <label class="col-sm-2 col-form-label text-light">Data</label>
+        <div class="col-sm-10">
+            <input class="form-control" type="text" @bind="dataHolder" />
+        </div>
+    </div>
+    <button class="btn btn-info m-3" @onclick="() => CreateDevice(new DeviceDto(){Name = nameHolder, Data = dataHolder})" @onclick:preventDefault="true">
+        ADD
+    </button>
+
+</div>
+
 @code {
+    public string nameHolder = "";
+    public string dataHolder = "";
+
+    private async Task CreateDevice(DeviceDto deviceDto)
+    {
+
+
+        var response = await httpClient.PostAsJsonAsync<DeviceDto>($"api/post", deviceDto);
+
+        if (!response.IsSuccessStatusCode)
+        {
+
+        }
+        else
+        {
+            //Redirect to index
+
+        }
+    }
 
 }
