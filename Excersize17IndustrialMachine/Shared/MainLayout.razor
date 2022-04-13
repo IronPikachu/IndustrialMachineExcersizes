@@ -1,15 +1,29 @@
 ﻿@inherits LayoutComponentBase
+@inject StateService state
 
 
 <header>
-    <CoolerNavBar />
+    <CoolerNavBar/>
 </header>
 
 <div class="page">
 
     <main>
         <article class="content px-4">
+            <CascadingValue Value="this">
             @Body
+            </CascadingValue>
         </article>
     </main>
 </div>
+
+
+@code{
+
+    protected override async Task OnInitializedAsync()
+    {
+        await state.SetSubTitle("Dashboard");
+        state.OnChange += StateHasChanged;
+    }
+
+}

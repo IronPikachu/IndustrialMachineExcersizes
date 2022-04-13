@@ -1,4 +1,5 @@
 ﻿@using IndustrialMachine.Data.Dto
+@inject NavigationManager Nav
 
 @page "/add"
 
@@ -29,8 +30,6 @@
 
     private async Task CreateDevice(DeviceDto deviceDto)
     {
-
-
         var response = await httpClient.PostAsJsonAsync<DeviceDto>($"api/post", deviceDto);
 
         if (!response.IsSuccessStatusCode)
@@ -40,7 +39,7 @@
         else
         {
             //Redirect to index
-
+            Nav.NavigateTo("/");
         }
     }
 

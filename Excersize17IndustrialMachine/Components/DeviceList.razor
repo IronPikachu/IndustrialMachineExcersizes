@@ -1,4 +1,4 @@
-﻿@using static Excersize17IndustrialMachine.Pages.Index
+﻿@inject StateService state
 
 <div class="border bg-light">
     <h3>Device List</h3>
@@ -22,6 +22,9 @@
                 </th>
                 <th scope="col">
                     Send data
+                </th>
+                <th scope="col">
+                    Misc
                 </th>
             </tr>
         </thead>
@@ -52,6 +55,12 @@
                     <td>
                         <div>
                             @System.Text.Encoding.ASCII.GetString(device.Data)
+                            <div>
+                                <button class="btn btn-warning" @onclick="() => UpdateData(device)">
+                                    <span class="oi oi-hard-drive"></span>
+                                    Get Latest Data
+                                </button>
+                            </div>
                         </div>
                     </td>
                     <td>
@@ -73,6 +82,14 @@
                             }
                         </div>
                     </td>
+                    <td>
+                        <div>
+                            <NavLink  class="btn btn-primary" href="@($"details/{device.Id}")" @onclick="() => SetTitle(device)">
+                                <span class="oi oi-magnifying-glas"></span>
+                                Details
+                            </NavLink>
+                        </div>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -87,32 +104,13 @@
     [Parameter]
     public EventCallback<Info> Status { get; set; }
 
+    private async Task SetTitle(Device device)
+    {
+        await state.SetDevice(device);
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        //Devices = new List<Device>(){
-        //    new Device()
-        //    {
-        //        Name = "Thing 1",
-        //        Id = new Guid(System.Text.Encoding.ASCII.GetBytes("abcdefghijklmnop")),
-        //        Status = true,
-        //        Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 1")
-        //    },
-        //    new Device()
-        //    {
-        //        Name = "Thing 2",
-        //        Id = new Guid(System.Text.Encoding.ASCII.GetBytes("thing2issuccessy")),
-        //        Status = true,
-        //        Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 2")
-        //    },
-        //    new Device()
-        //    {
-        //        Name = "Thing 3",
-        //        Id = new Guid(System.Text.Encoding.ASCII.GetBytes("cccccccccccccccc")),
-        //        Status = false,
-        //        Data = System.Text.Encoding.ASCII.GetBytes("Data for Thing 3")
-        //    }
-        //};
-
         var response = await httpClient.GetFromJsonAsync<List<Device>>($"api/get");
 
         if (response != null)
@@ -129,7 +127,6 @@
 
         if (response != null)
         {
-            device.Data = System.Text.Encoding.ASCII.GetBytes(device.SendData!);
             device.SendData = null;
         }
     }
@@ -155,4 +152,14 @@
             OnlineCount = Devices != null ? Devices.Where(d => d.Status).ToList().Count : -1,
             OfflineCount = Devices != null ? Devices.Where(d => !d.Status).ToList().Count : -1
         });
+
+    async Task UpdateData(Device device)
+    {
+        var response = await httpClient.GetFromJsonAsync<Device>($"api/get/{device.Id}");
+
+        if (response != null)
+        {
+            device = response;
+        }
+    }
 }

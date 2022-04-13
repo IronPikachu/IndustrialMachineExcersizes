@@ -1,0 +1,49 @@
+﻿@page "/details/{id:guid}"
+@inject StateService state
+
+@if (device == null || Detail == null)
+{
+    <div class="spinner-border text-secondary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else
+{
+    <h3>Details for @device.Name</h3>
+    @foreach(var d in Detail.DeviceData)
+    {
+        <p>
+            @System.Text.Encoding.ASCII.GetString(d)
+        </p>
+    }
+}
+
+@code {
+    public Device device { get; set; }
+    DetailsDto Detail { get; set; }
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    public EventCallback<string> SubTitle { get; set; }
+
+    protected override void OnInitialized()
+    {
+        device = state.Device;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string subTitle = $"{device.Name} Details";
+        await state.SetSubTitle(subTitle);
+        await SubTitle.InvokeAsync(subTitle);
+
+        var response = await httpClient.GetFromJsonAsync<DetailsDto>($"api/details/{Id}");
+
+        if (response != null)
+        {
+            Detail = response;
+        }
+    }
+
+}
