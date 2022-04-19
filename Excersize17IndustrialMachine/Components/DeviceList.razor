@@ -29,7 +29,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var device in Devices)
+            @foreach (var device in Devices.OrderBy(d => d.Name))
             {
                 <tr>
                     <td>
@@ -104,6 +104,9 @@
     [Parameter]
     public EventCallback<Info> Status { get; set; }
 
+    [CascadingParameter]
+    public MainLayout ML { get; set; }
+
     private async Task SetTitle(Device device)
     {
         await state.SetDevice(device);
@@ -127,7 +130,8 @@
 
         if (response != null)
         {
-            device.SendData = null;
+            state.UpdateDevice(device);
+            ML.NotifyStateChange();
         }
     }
 
@@ -159,7 +163,11 @@
 
         if (response != null)
         {
-            device = response;
+            Devices.Remove(device);
+            Devices.Add(response);
+            //device = response;
+            //state.UpdateDevice(device);
+            StateHasChanged();
         }
     }
 }

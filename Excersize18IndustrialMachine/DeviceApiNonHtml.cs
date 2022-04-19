@@ -13,7 +13,7 @@ public static partial class DeviceApi
 {
     [FunctionName("QueueUpdate")]
     public static async Task QueueUpdate(
-        [QueueTrigger("Machines", Connection = "AzureWebJobsStorage")]
+        [QueueTrigger("Deleted", Connection = "AzureWebJobsStorage")]
                 Device device,
         [Blob("deleted", Connection = "AzureWebJobsStorage")]
                 CloudBlobContainer blobContainer,
@@ -21,6 +21,11 @@ public static partial class DeviceApi
     {
         await blobContainer.CreateIfNotExistsAsync();
         var blob = blobContainer.GetBlockBlobReference($"{device.Id}.txt");
-        await blob.UploadTextAsync($"{device.Data}");
+
+        StringBuilder sb = new StringBuilder($"{device.Name} - {device.Id}\n");
+
+        sb.Append($"{System.Text.Encoding.ASCII.GetString( device.Data)}");
+
+        await blob.UploadTextAsync(sb.ToString());
     }
 }

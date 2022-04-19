@@ -1,5 +1,6 @@
 ﻿@page "/details/{id:guid}"
 @inject StateService state
+@inject NavigationManager nav
 
 @if (device == null || Detail == null)
 {
@@ -10,22 +11,29 @@
 else
 {
     <h3>Details for @device.Name</h3>
-    @foreach(var d in Detail.DeviceData)
-    {
-        <p>
-            @System.Text.Encoding.ASCII.GetString(d)
-        </p>
-    }
+    <div class="container">
+        <LineChart Values="@PureData" Min="@Min" Max="@Max">
+
+        </LineChart>
+    </div>
+
+    <button class="btn btn-danger" @onclick="() => OnDelete()">
+        DELETE
+    </button>
 }
 
 @code {
     public Device device { get; set; }
     DetailsDto Detail { get; set; }
+    public List<double> PureData { get; set; } = new();
 
     [Parameter]
     public Guid Id { get; set; }
 
     public EventCallback<string> SubTitle { get; set; }
+
+    double Min { get; set; } = 0;
+    double Max { get; set; } = 1;
 
     protected override void OnInitialized()
     {
@@ -43,7 +51,60 @@ else
         if (response != null)
         {
             Detail = response;
+            PureData = GetList(Detail.DeviceData);
         }
+
+
+    }
+
+    async Task OnDelete()
+    {
+        //await httpClient.GetFromJsonAsync<Device>($"api/delete/{Id}");
+        await httpClient.DeleteAsync($"api/delete/{Id}");
+        nav.NavigateTo("");
+    }
+
+    List<double> GetList(List<byte[]> dataAsInt)
+    {
+        List<double> toreturn = new List<double>();
+        foreach (var item in Detail.DeviceData)
+        {
+            string actual = System.Text.Encoding.ASCII.GetString(item);
+            if (double.TryParse(actual, out double val))
+                toreturn.Add(val);
+            else
+            {
+                double hodlerVal = 0;
+                for (int i = 0; i < actual.Length; i++)
+                {
+                    if (i % 2 == 0)
+                    {
+                        hodlerVal += (i + 1) * actual[i];
+                    }
+                    else
+                    {
+                        hodlerVal /= Math.Max(1, (i + 1) * actual[i]);
+                    }
+                }
+                toreturn.Add(10 * hodlerVal);
+            }
+        }
+        toreturn = toreturn.Skip(Math.Max(0, toreturn.Count - 10)).ToList();
+
+        //toreturn = new List<double>() { -1d, 0d, 1d, 2d, 3d, 4d, 5d, 6d, 7d, -1d };
+
+        toreturn = new List<double>();
+        int start = -4;
+        int howMany = 9 + start;
+
+        for (double i = start; i < howMany; i++)
+        {
+            toreturn.Add(i);
+        }
+        double boundMultiplier = 1.05;
+        Min = Math.Floor(toreturn.Min() * boundMultiplier);
+        Max = Math.Ceiling(toreturn.Max() * boundMultiplier);
+        return toreturn;
     }
 
 }

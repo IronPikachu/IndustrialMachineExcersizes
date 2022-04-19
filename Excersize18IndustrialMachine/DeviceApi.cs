@@ -60,6 +60,40 @@ public static partial class DeviceApi
         return new OkObjectResult(response);
     }
 
+    [FunctionName("GetLatestData")]
+    public static async Task<IActionResult> GetLatestData(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "get/{id}")]
+                HttpRequest req,
+        [Table("Machines", Connection = "AzureWebJobsStorage")]
+                CloudTable tableMachine,
+        [Table("History", Connection = "AzureWebJobsStorage")]
+                CloudTable tableHistory,
+            Guid id,
+            ILogger log)
+    {
+        var query = new TableQuery<TableDevice>();
+        var deviceToUpdate = (await tableMachine.ExecuteQuerySegmentedAsync(query, null)).First(d => d.RowKey == id.ToString()).GetDevice();
+
+        if (deviceToUpdate is null || deviceToUpdate.Id != id) return new BadRequestResult();
+
+        deviceToUpdate.Data = DataGenerator.GetData(deviceToUpdate.Data);
+
+        var itemEntity = deviceToUpdate.GetTableDevice("Banan");
+        var historyDevice = deviceToUpdate.GetTableDevice($"{deviceToUpdate.Id}");
+
+        historyDevice.RowKey = DateTime.Now.Ticks.ToString();
+        itemEntity.ETag = "*";
+
+        await tableHistory.ExecuteAsync(TableOperation.Insert(historyDevice));
+
+
+
+        var operation = TableOperation.Replace(itemEntity);
+        await tableMachine.ExecuteAsync(operation);
+
+        return new OkObjectResult(deviceToUpdate);
+    }
+
     [FunctionName("GetDetails")]
     public static async Task<IActionResult> GetDetails(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "details/{id}")]
@@ -74,11 +108,20 @@ public static partial class DeviceApi
         var query = new TableQuery<TableDevice>();
         var res = await table.ExecuteQuerySegmentedAsync(query, null);
 
-        Device response = res.Select(DeviceConverters.GetDevice).ToList().First(d => d.Id == id);
+        TableDevice tableDevice = res
+            .ToList()
+            .First(d => d.GetDevice().Id == id);
 
-        var dataQuery = new TableQuery<TableDevice>();
+        Device response = tableDevice.GetDevice();
 
-        var data = (await tableHistory.ExecuteQuerySegmentedAsync(dataQuery, null)).Select(t => t.Data).ToList();
+        var res2 = await tableHistory.ExecuteQuerySegmentedAsync(query, null);
+
+        var data = res2
+            .Where(t => t.PartitionKey == response.Id.ToString())
+            .Select(t => t.Data)
+            .ToList();
+
+
 
         DetailsDto dto = new DetailsDto()
         {
@@ -104,7 +147,6 @@ public static partial class DeviceApi
 
         if (itemToUpdate is null || itemToUpdate.Id != id) return new BadRequestResult();
 
-        if (string.IsNullOrEmpty(itemToUpdate.SendData)) return new NoContentResult();
 
         var itemEntity = itemToUpdate.GetTableDevice("Banan");
         itemEntity.ETag = "*";
@@ -132,6 +174,8 @@ public static partial class DeviceApi
 
         if (deviceToUpdate is null || deviceToUpdate.Id != id) return new BadRequestResult();
 
+        if (string.IsNullOrEmpty(deviceToUpdate.SendData)) return new NoContentResult();
+
         deviceToUpdate.Data = System.Text.Encoding.ASCII.GetBytes(deviceToUpdate.SendData);
         deviceToUpdate.SendData = null;
 
@@ -154,16 +198,18 @@ public static partial class DeviceApi
     public static async Task<IActionResult> Delete(
         [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "delete/{id}")]
                 HttpRequest req,
-        [Table("Machines", "Device", "{id}", Connection = "AzureWebJobsStorage")]
+        [Table("Machines", "Banan", "{id}", Connection = "AzureWebJobsStorage")]
                 TableDevice tableDevice,
         [Table("Machines", Connection = "AzureWebJobsStorage")]
                 CloudTable table,
-        [Queue("todoqueue", Connection = "AzureWebJobsStorage")]
+        [Queue("Deleted", Connection = "AzureWebJobsStorage")]
                 IAsyncCollector<Device> queueDevices,
             Guid id,
             ILogger log)
     {
         if (tableDevice == null) return new BadRequestResult();
+
+        await queueDevices.AddAsync(tableDevice.GetDevice());
 
         var operation = TableOperation.Delete(tableDevice);
         var res = await table.ExecuteAsync(operation);

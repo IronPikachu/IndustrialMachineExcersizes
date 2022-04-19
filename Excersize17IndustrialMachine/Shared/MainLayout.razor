@@ -26,4 +26,8 @@
         state.OnChange += StateHasChanged;
     }
 
+    public void NotifyStateChange()
+    {
+        StateHasChanged();
+    }
 }

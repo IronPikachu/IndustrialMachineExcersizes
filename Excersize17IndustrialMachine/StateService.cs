@@ -22,4 +22,12 @@ internal class StateService
 
     private void NotifyStateChanged() => OnChange?.Invoke();
 
+    public void UpdateDevice(Device device)
+    {
+        if (device.SendData == null) return;
+
+        device.Data = System.Text.Encoding.ASCII.GetBytes(device.SendData);
+        device.SendData = null;
+        NotifyStateChanged();
+    }
 }

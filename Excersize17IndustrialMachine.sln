@@ -5,9 +5,9 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Excersize17IndustrialMachine", "Excersize17IndustrialMachine\Excersize17IndustrialMachine.csproj", "{88844D6B-F466-480A-AFF5-810CA7D5EC0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Excersize18IndustrialMachine", "Excersize18IndustrialMachine\Excersize18IndustrialMachine.csproj", "{2D429028-3365-4003-B203-1A11E1E786CD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Excersize18IndustrialMachine", "Excersize18IndustrialMachine\Excersize18IndustrialMachine.csproj", "{2D429028-3365-4003-B203-1A11E1E786CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndustrialMachine.Data", "IndustrialMachine.Data\IndustrialMachine.Data.csproj", "{9D1B4D28-E5C5-49A3-A080-5617AE7C2A8D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndustrialMachine.Data", "IndustrialMachine.Data\IndustrialMachine.Data.csproj", "{9D1B4D28-E5C5-49A3-A080-5617AE7C2A8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
