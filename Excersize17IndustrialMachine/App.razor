@@ -20,6 +20,7 @@
         if (firstRender)
         {
             await JSRuntime.InvokeAsync<IJSObjectReference>("import", "/js/bootstrap/bootstrap.min.js");
+            await JSRuntime.InvokeAsync<IJSObjectReference>("import", "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js");
         }
     }
 }

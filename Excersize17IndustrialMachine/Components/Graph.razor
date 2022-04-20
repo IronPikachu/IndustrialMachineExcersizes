@@ -1,0 +1,105 @@
+﻿
+<LineChart @ref="lineChart" TItem="double" />
+
+<div class="row">
+    <div>
+        <label class="col-4 col-form-label">How much of the latest Data to display</label>
+    </div>
+
+    <div class="col-4">
+        <input class="form-control" type="number" @bind="ValuesToDisplay" min="2" max="@Values.Count" />
+    </div>
+    <div class="col-2">
+        <input type="checkbox" class="form-check-input" id="log" @bind="DisplayLogarithmic"/>
+        <label class="form-check-label" for="log">
+            Use Logarithmic Scale
+        </label>
+    </div>
+    <div class="col-2">
+        <button class="btn btn-info m-3" @onclick="() => HandleRedraw(ValuesToDisplay)" @onclick:preventDefault="true">
+            Redraw
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public List<double> Values { get; set; }
+
+    [Parameter]
+    public double Max { get; set; }
+
+    [Parameter]
+    public double Min { get; set; }
+
+    LineChart<double> lineChart;
+
+    int ValuesToDisplay { get; set; } = 10;
+    bool DisplayLogarithmic { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await HandleRedraw();
+        }
+    }
+
+    async Task HandleRedraw(int dataPoints = 10)
+    {
+        await lineChart.Clear();
+
+        var dataset = GetLineChartDataset(dataPoints);
+
+        await lineChart.AddLabelsDatasetsAndUpdate(Labels, dataset);
+    }
+
+    LineChartDataset<double> GetLineChartDataset(int dataPoints)
+    {
+        List<string> backgroundColors = new List<string>();
+        List<string> borderColors = new List<string>();
+        Labels = new List<string>();
+
+        //toreturn = toreturn.Skip(Math.Max(0, toreturn.Count - 10)).ToList();
+
+        var dataToShow = Values.Skip(Math.Min(Math.Max(0, Values.Count - dataPoints), Values.Count)).ToList();
+
+        foreach (var item in dataToShow)
+        {
+            int clr = (int)Math.Floor(255 * item / (Max - Min));
+
+            byte red = (byte)Math.Min(clr, 0b11111111);
+            byte blue = (byte)~red;
+            byte green = (byte)((((int)red << 1) ^ ((int)blue >> 1)) & 0b00111111);
+
+            backgroundColors.Add(ChartColor.FromRgba(red, green, blue, 0.2f));
+            borderColors.Add(ChartColor.FromRgba(red, green, blue, 1f));
+            Labels.Add("•");
+        }
+
+        Labels[0] = "Oldest";
+        Labels[Labels.Count - 1] = "Newest";
+
+        if (DisplayLogarithmic)
+        {
+            dataToShow = dataToShow.ConvertAll(d => d <= 0 ? d == 0 ? 0 : -Math.Log10(-d) : Math.Log10(d) ); // !!!
+        }
+
+        return new LineChartDataset<double>
+            {
+                Label = Label,
+                Data = dataToShow,
+                BackgroundColor = backgroundColors,
+                BorderColor = borderColors,
+                Fill = true,
+                PointRadius = 3,
+                CubicInterpolationMode = "monotone",
+            };
+    }
+
+    List<string> Labels = new List<string>();
+
+}

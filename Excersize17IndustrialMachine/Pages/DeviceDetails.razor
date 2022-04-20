@@ -12,9 +12,10 @@ else
 {
     <h3>Details for @device.Name</h3>
     <div class="container">
-        <LineChart Values="@PureData" Min="@Min" Max="@Max">
+        <Graph Values="@PureData" Min="@Min" Max="@Max" Label="@($"{device.Name}'s historical data as double values")">
 
-        </LineChart>
+        </Graph>
+
     </div>
 
     <button class="btn btn-danger" @onclick="() => OnDelete()">
@@ -89,18 +90,8 @@ else
                 toreturn.Add(10 * hodlerVal);
             }
         }
-        toreturn = toreturn.Skip(Math.Max(0, toreturn.Count - 10)).ToList();
+        //toreturn = toreturn.Skip(Math.Max(0, toreturn.Count - 10)).ToList();
 
-        //toreturn = new List<double>() { -1d, 0d, 1d, 2d, 3d, 4d, 5d, 6d, 7d, -1d };
-
-        toreturn = new List<double>();
-        int start = -4;
-        int howMany = 9 + start;
-
-        for (double i = start; i < howMany; i++)
-        {
-            toreturn.Add(i);
-        }
         double boundMultiplier = 1.05;
         Min = Math.Floor(toreturn.Min() * boundMultiplier);
         Max = Math.Ceiling(toreturn.Max() * boundMultiplier);
